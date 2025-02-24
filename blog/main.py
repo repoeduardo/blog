@@ -1,5 +1,5 @@
 # fastapi imports
-from fastapi import FastAPI, Depends, status, Response, HTTPException
+from fastapi import FastAPI, Depends, status, HTTPException
 
 # database  imports
 from . import schemas, models
@@ -50,3 +50,16 @@ def all_blogs(db: Session = Depends(get_db)): # get all blogs from database
     
     return blogs
 
+
+@app.get('/blog/{id}')
+def get_blog_by_id(id, db: Session = Depends(get_db)): # get blog by id
+    
+    blog = db.query(models.Blog).filter(models.Blog.id == id).first()
+    if not blog:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f'Blog with ID {id} is not available'
+        )
+        #response.status_code = status.HTTP_404_NOT_FOUND
+        #return {'details': f'Blog with ID {id} is not available'}
+    return blog
