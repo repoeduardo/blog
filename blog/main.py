@@ -1,5 +1,5 @@
 # fastapi imports
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, status, Response, HTTPException
 
 # database  imports
 from . import schemas, models
@@ -19,9 +19,34 @@ def get_db():
     finally:
         db.close()
 
+# === POST ===
+
+@app.post('/blog', status_code=status.HTTP_201_CREATED)
+def create_blog(request: schemas.Blog, db: Session = Depends(get_db)): # create a blog
+
+    newblog = models.Blog(title=request.title, body=request.body)
+    db.add(newblog)
+    db.commit()
+    db.refresh(newblog)
+    return newblog
+
 
 # === GET ===
 
 @app.get('/')
 def index():
-    return {'data':'hello world'}
+    return {'msg':'index page'}
+
+@app.get('/blogs')
+def all_blogs(db: Session = Depends(get_db)): # get all blogs from database
+
+    blogs = db.query(models.Blog).all()
+
+    if not blogs:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f'No blogs in database'
+        )
+    
+    return blogs
+
