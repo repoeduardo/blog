@@ -20,7 +20,6 @@ def get_db():
         db.close()
 
 # === POST ===
-
 @app.post('/blog', status_code=status.HTTP_201_CREATED)
 def create_blog(request: schemas.Blog, db: Session = Depends(get_db)): # create a blog
 
@@ -31,12 +30,37 @@ def create_blog(request: schemas.Blog, db: Session = Depends(get_db)): # create 
     return newblog
 
 
+# === DELETE ===
+@app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT)
+def destroy(id, db: Session = Depends(get_db)): # delete by id
+    blog = db.query(models.Blog).filter(models.Blog.id == id)
+    if not blog.first():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f'Blog with ID {id} is not available'
+            )
+
+    blog.delete(synchronize_session=False)
+
+    db.commit()
+    return f'Blof with ID {id} was deleted  :)'
+
+
+# === PUT ===
+@app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED)
+def update(id, request: schemas.Blog, db: Session = Depends(get_db)): # update by id
+    blog = db.query(models.Blog).filter(models.Blog.id == id)
+    if not blog.first():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f'Blog with ID {id} is not available'
+            )
+    blog.update(request.model_dump())
+    db.commit()
+    return f'Blog with ID {id} was updated'
+
+
 # === GET ===
-
-@app.get('/')
-def index():
-    return {'msg':'index page'}
-
 @app.get('/blogs')
 def all_blogs(db: Session = Depends(get_db)): # get all blogs from database
 
