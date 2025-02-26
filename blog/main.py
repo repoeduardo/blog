@@ -19,6 +19,8 @@ def get_db():
     finally:
         db.close()
 
+# ** BLOG METHODS **
+
 # === POST ===
 @app.post('/blog', status_code=status.HTTP_201_CREATED)
 def create_blog(request: schemas.Blog, db: Session = Depends(get_db)): # create a blog
@@ -87,3 +89,14 @@ def get_blog_by_id(id, db: Session = Depends(get_db)): # get blog by id
         #response.status_code = status.HTTP_404_NOT_FOUND
         #return {'details': f'Blog with ID {id} is not available'}
     return blog
+
+
+# ** USER METHODS **
+
+@app.post('/user', status_code=status.HTTP_201_CREATED)
+def create_user(request: schemas.User, db: Session = Depends(get_db)):
+    newuser = models.User(name=request.name, email=request.email, password=request.password)
+    db.add(newuser)
+    db.commit()
+    db.refresh(newuser)
+    return newuser
