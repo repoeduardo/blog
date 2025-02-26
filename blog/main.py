@@ -38,7 +38,7 @@ def create_blog(request: schemas.Blog, db: Session = Depends(get_db)): # create 
 
 # === DELETE ===
 @app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT, tags=['blogs'])
-def destroy(id, db: Session = Depends(get_db)): # delete by id
+def destroy_blog(id, db: Session = Depends(get_db)): # delete by id
     blog = db.query(models.Blog).filter(models.Blog.id == id)
     if not blog.first():
         raise HTTPException(
@@ -54,7 +54,7 @@ def destroy(id, db: Session = Depends(get_db)): # delete by id
 
 # === PUT ===
 @app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED, tags=['blogs'])
-def update(id, request: schemas.Blog, db: Session = Depends(get_db)): # update by id
+def update_blog(id, request: schemas.Blog, db: Session = Depends(get_db)): # update by id
     blog = db.query(models.Blog).filter(models.Blog.id == id)
     if not blog.first():
         raise HTTPException(
@@ -111,6 +111,35 @@ def create_user(request: schemas.User, db: Session = Depends(get_db)): # create 
     db.commit()
     db.refresh(newuser)
     return newuser
+
+# === DELETE ===
+@app.delete('/user/{id}', status_code=status.HTTP_204_NO_CONTENT, tags=['users'])
+def destroy_user(id, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == id)
+    if not user.first():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f'User with ID {id} is not available'
+            )
+
+    user.delete(synchronize_session=False)
+
+    db.commit()
+    return f'User with ID {id} was deleted  :)'
+
+
+# === PUT ===
+@app.put('/user/{id}', status_code=status.HTTP_202_ACCEPTED, tags=['users'])
+def update_user(id, request: schemas.Blog, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == id)
+    if not user.first():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f'User with ID {id} is not available'
+            )
+    user.update(request.model_dump())
+    db.commit()
+    return f'User with ID {id} was updated'
 
 # === GET ===
 @app.get('/users', tags=['users'])
