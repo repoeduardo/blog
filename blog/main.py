@@ -6,6 +6,10 @@ from . import schemas, models
 from .dbconfig import engine, SessionLocal
 from sqlalchemy.orm import Session
 
+# password imports
+from .hashing import Hash
+
+
 # Creating the tables in the database based on the models in models.py file
 models.Base.metadata.create_all(engine)
 
@@ -93,9 +97,16 @@ def get_blog_by_id(id, db: Session = Depends(get_db)): # get blog by id
 
 # ** USER METHODS **
 
+
+# === POST ===
 @app.post('/user', status_code=status.HTTP_201_CREATED)
-def create_user(request: schemas.User, db: Session = Depends(get_db)):
-    newuser = models.User(name=request.name, email=request.email, password=request.password)
+def create_user(request: schemas.User, db: Session = Depends(get_db)): # create an user
+    
+    newuser = models.User(
+        name=request.name, 
+        email=request.email, 
+        password=Hash.bcrypt(request.password)
+    )
     db.add(newuser)
     db.commit()
     db.refresh(newuser)
