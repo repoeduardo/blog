@@ -26,7 +26,7 @@ def get_db():
 # ** BLOG METHODS **
 
 # === POST ===
-@app.post('/blog', status_code=status.HTTP_201_CREATED)
+@app.post('/blog', status_code=status.HTTP_201_CREATED, tags=['blogs'])
 def create_blog(request: schemas.Blog, db: Session = Depends(get_db)): # create a blog
 
     newblog = models.Blog(title=request.title, body=request.body)
@@ -37,7 +37,7 @@ def create_blog(request: schemas.Blog, db: Session = Depends(get_db)): # create 
 
 
 # === DELETE ===
-@app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT)
+@app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT, tags=['blogs'])
 def destroy(id, db: Session = Depends(get_db)): # delete by id
     blog = db.query(models.Blog).filter(models.Blog.id == id)
     if not blog.first():
@@ -53,7 +53,7 @@ def destroy(id, db: Session = Depends(get_db)): # delete by id
 
 
 # === PUT ===
-@app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED)
+@app.put('/blog/{id}', status_code=status.HTTP_202_ACCEPTED, tags=['blogs'])
 def update(id, request: schemas.Blog, db: Session = Depends(get_db)): # update by id
     blog = db.query(models.Blog).filter(models.Blog.id == id)
     if not blog.first():
@@ -67,7 +67,7 @@ def update(id, request: schemas.Blog, db: Session = Depends(get_db)): # update b
 
 
 # === GET ===
-@app.get('/blogs')
+@app.get('/blogs', tags=['blogs'])
 def all_blogs(db: Session = Depends(get_db)): # get all blogs from database
 
     blogs = db.query(models.Blog).all()
@@ -81,7 +81,7 @@ def all_blogs(db: Session = Depends(get_db)): # get all blogs from database
     return blogs
 
 
-@app.get('/blog/{id}')
+@app.get('/blog/{id}', tags=['blogs'])
 def get_blog_by_id(id, db: Session = Depends(get_db)): # get blog by id
     
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
@@ -99,7 +99,7 @@ def get_blog_by_id(id, db: Session = Depends(get_db)): # get blog by id
 
 
 # === POST ===
-@app.post('/user', status_code=status.HTTP_201_CREATED)
+@app.post('/user', status_code=status.HTTP_201_CREATED, tags=['users'])
 def create_user(request: schemas.User, db: Session = Depends(get_db)): # create an user
     
     newuser = models.User(
@@ -111,3 +111,26 @@ def create_user(request: schemas.User, db: Session = Depends(get_db)): # create 
     db.commit()
     db.refresh(newuser)
     return newuser
+
+# === GET ===
+@app.get('/users', tags=['users'])
+def all_users(db: Session = Depends(get_db)): # get all users from database
+    users = db.query(models.User).all()
+
+    if not users:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f'No users in database'
+        )
+    
+    return users
+
+@app.get('/user/{id}', tags=['users'])
+def get_user_by_id(id, db: Session = Depends(get_db)): # get user by id
+    user = db.query(models.User).filter(models.User.id == id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f'User with ID {id} is not available'
+        )
+    return user
