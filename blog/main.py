@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 # password imports
 from .hashing import Hash
 
+# pydantic imports
+from pydantic import List
 
 # Creating the tables in the database based on the models in models.py file
 models.Base.metadata.create_all(engine)
@@ -49,7 +51,7 @@ def destroy_blog(id, db: Session = Depends(get_db)): # delete by id
     blog.delete(synchronize_session=False)
 
     db.commit()
-    return f'Blof with ID {id} was deleted  :)'
+    return f'Blog with ID {id} was deleted  :)'
 
 
 # === PUT ===
@@ -67,7 +69,7 @@ def update_blog(id, request: schemas.Blog, db: Session = Depends(get_db)): # upd
 
 
 # === GET ===
-@app.get('/blogs', tags=['blogs'])
+@app.get('/blogs', tags=['blogs'], request_model=List[schemas.ShowBlog])
 def all_blogs(db: Session = Depends(get_db)): # get all blogs from database
 
     blogs = db.query(models.Blog).all()
@@ -81,7 +83,7 @@ def all_blogs(db: Session = Depends(get_db)): # get all blogs from database
     return blogs
 
 
-@app.get('/blog/{id}', tags=['blogs'])
+@app.get('/blog/{id}',tags=['blogs'], request_model=schemas.ShowBlog)
 def get_blog_by_id(id, db: Session = Depends(get_db)): # get blog by id
     
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
@@ -142,7 +144,7 @@ def update_user(id, request: schemas.Blog, db: Session = Depends(get_db)):
     return f'User with ID {id} was updated'
 
 # === GET ===
-@app.get('/users', tags=['users'])
+@app.get('/users', tags=['users'], response_model=List[schemas.ShowUser])
 def all_users(db: Session = Depends(get_db)): # get all users from database
     users = db.query(models.User).all()
 
@@ -154,7 +156,7 @@ def all_users(db: Session = Depends(get_db)): # get all users from database
     
     return users
 
-@app.get('/user/{id}', tags=['users'])
+@app.get('/user/{id}', tags=['users'], response_model=schemas.ShowUser)
 def get_user_by_id(id, db: Session = Depends(get_db)): # get user by id
     user = db.query(models.User).filter(models.User.id == id).first()
     if not user:
